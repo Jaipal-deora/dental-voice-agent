@@ -5,3 +5,14 @@ description = "AI-powered voice receptionist for a simulated dental clinic."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = []
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28.1",
+    "mypy>=2.4.1",
+    "pre-commit>=4.7.0",
+    "pytest>=9.2.0",
+    "pytest-asyncio>=1.5.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.5",
+]
