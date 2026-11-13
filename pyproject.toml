@@ -4,7 +4,15 @@ version = "0.1.0"
 description = "AI-powered voice receptionist for a simulated dental clinic."
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "aiosqlite>=0.22.1",
+    "alembic>=1.20.1",
+    "fastapi>=0.162.5",
+    "pydantic>=2.14.3",
+    "pydantic-settings>=2.16.3",
+    "sqlalchemy>=2.1.8",
+    "uvicorn>=0.54.0",
+]
 
 [dependency-groups]
 dev = [
