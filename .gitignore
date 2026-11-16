@@ -15,4 +15,8 @@ venv/
 .env.*
 !.env.example
 
+# sqlite db
+*.db
+
+
 

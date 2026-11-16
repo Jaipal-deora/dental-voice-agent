@@ -29,7 +29,7 @@ class Slot(Base):
     ends_at: Mapped[datetime] = mapped_column(nullable=False)
     # ensure start datetime < endtime 
     __table_args__ = (
-        CheckConstraint("ends_at > starts_at", name="check_slot_time")
+        CheckConstraint("ends_at > starts_at", name="check_slot_time"),
     )
     
 
@@ -66,7 +66,7 @@ class OpeningHours(Base):
         # valid weekday 
         CheckConstraint("weekday between 0 and 6", name="check_weekday"),
         # valid open and close time 
-        CheckConstraint("opens < closes", name="check_opening_hours")
+        CheckConstraint("opens < closes", name="check_opening_hours"),
     )
 
 
