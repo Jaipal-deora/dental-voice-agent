@@ -23,7 +23,7 @@ def _http(e: Exception) -> HTTPException:
 async def slots(db: Db) -> list[Slot]:
     return await service.list_slots(db)
 
-@router.get("/hours",response_model=HoursOut)
+@router.get("/hours",response_model=list[HoursOut])
 async def hours(db:Db) -> list[OpeningHours]:
     return await service.get_hours(db)
 
