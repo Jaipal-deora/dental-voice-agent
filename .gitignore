@@ -1,5 +1,8 @@
 # Python-generated files
 __pycache__/
+.mypy_cache/
+.ruff_cache/
+.coverage
 *.py[oc]
 build/
 dist/
