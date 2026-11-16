@@ -78,7 +78,7 @@ async def cancel(s: AsyncSession, appt_id:int) -> Appointment:
     if appt is None:
         raise NotFound("appointment")
 
-    appt.status = "cancelleld"
+    appt.status = "cancelled"
     await s.commit()
     return appt 
 
