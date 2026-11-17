@@ -2,9 +2,6 @@ import asyncio
 import random
 from datetime import date, timedelta
 
-# from google import genai
-# from google.genai import types
-# from google.genai.errors import APIError
 from openai import (
     APIError,
     APITimeoutError,
@@ -22,11 +19,6 @@ from dental_agent.schemas import BookingIntent
 
 BACKOFF_BASE = 0.3 
 
-# SYSTEM = (
-#     "Extract dental clinic booking requests. Reply with only one JSON object and nothing else. "
-#     "keys: intent(book, reschedule, cancel, hours or unknown), day (weekday name, ISO date or null), "
-#     "daypart (morning, afternoon, evening or null), service (string or null), confidence (0 to 1). Today is {today}."
-# )
 
 SYSTEM = """You extract requests from callers of a dental clinic.
 Reply with one JSON object and nothing else: no markdown, no explanation.
@@ -72,13 +64,7 @@ def build_system(today: date | None = None) -> str:
     )
     return SYSTEM.replace("__CALENDAR__", calendar)
 
-# _client = genai.Client(
-#     api_key=settings.llm_api_key or "unset",
-#     http_options= types.HttpOptions(
-#         # timeout=int(settings.llm_timeout_s * 1000)
-#         # timeout = max(120_000,int(settings.llm_timeout_s*1000))
-#     ),
-# )
+
 
 _client = AsyncOpenAI(
     api_key=settings.llm_api_key or "unset",
@@ -91,16 +77,6 @@ class LLMUnavailable(Exception):
     pass 
 
 async def _call_model(text:str) -> str:
-    # response = await _client.aio.models.generate_content(
-    #     model=settings.llm_model,
-    #     contents=text,
-    #     config=types.GenerateContentConfig(
-    #         system_instruction=SYSTEM.format(
-    #             today=date.today().isoformat()
-    #         ),
-    #         max_output_tokens=200,
-    #     ),
-    # )
 
     messages: list[ChatCompletionUserMessageParam | ChatCompletionSystemMessageParam] = [
             {
