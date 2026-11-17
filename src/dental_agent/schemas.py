@@ -1,4 +1,5 @@
 from datetime import datetime, time
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -30,3 +31,13 @@ class AppointmentOut(BaseModel):
     id:int
     slot_id:int
     status:str 
+
+class ParseRequest(BaseModel):
+    text: str = Field(min_length=1,max_length=500)
+
+class BookingIntent(BaseModel):
+    intent: Literal["book", "reschedule", "cancel", "hours", "unknown"]
+    day: str | None = None
+    daypart: Literal["morning", "afternoon", "evening"] | None = None
+    service: str | None = None
+    confidence: float = Field(ge=0, le=1)

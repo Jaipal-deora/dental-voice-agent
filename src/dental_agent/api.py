@@ -3,13 +3,15 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from dental_agent import service
+from dental_agent import llm, service
 from dental_agent.db import get_session
 from dental_agent.db_models import Appointment, OpeningHours, Slot
 from dental_agent.schemas import (
     AppointmentOut,
+    BookingIntent,
     BookRequest,
     HoursOut,
+    ParseRequest,
     RescheduleRequest,
     SlotOut,
 )
@@ -51,5 +53,11 @@ async def cancel(appt_id: int, db:Db) -> Appointment:
     except service.NotFound as e:
         raise _http(e) from e 
 
+@router.post("/parse",response_model=BookingIntent)
+async def parse(body:ParseRequest) -> BookingIntent:
+    try:
+        return await llm.parse_intent(body.text)
+    except llm.LLMUnavailable as e:
+        raise HTTPException(502,"LLM Unavailable") from e 
 
 
