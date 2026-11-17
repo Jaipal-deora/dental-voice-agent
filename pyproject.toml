@@ -41,3 +41,7 @@ addopts = "-m 'not manual'"
 markers = [
     "manual: tests that should only run manually",
 ]
+
+[tool.coverage.run]
+concurrency = ["greenlet", "thread"]
+omit = ["*/seed.py"]
