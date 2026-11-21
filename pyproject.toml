@@ -7,8 +7,11 @@ requires-python = ">=3.13"
 dependencies = [
     "aiosqlite>=0.22.1",
     "alembic>=1.20.1",
+    "arize-phoenix>=22.0.0",
+    "arize-phoenix-otel>=0.17.3",
     "fastapi>=0.162.5",
     "openai>=3.52.0",
+    "openinference-instrumentation-openai>=0.1.75",
     "pydantic>=2.14.3",
     "pydantic-settings>=2.16.3",
     "sqlalchemy[asyncio]>=2.1.8",
@@ -45,3 +48,7 @@ markers = [
 [tool.coverage.run]
 concurrency = ["greenlet", "thread"]
 omit = ["*/seed.py"]
+
+[[tool.mypy.overrides]]
+module = ["phoenix.*", "openinference.*"]
+ignore_missing_imports = true
