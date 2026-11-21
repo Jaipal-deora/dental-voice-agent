@@ -19,45 +19,52 @@ from dental_agent.schemas import (
 router = APIRouter()
 Db = Annotated[AsyncSession, Depends(get_session)]
 
-def _http(e: Exception) -> HTTPException:
-    if isinstance(e,service.NotFound):
-        return HTTPException(404,f"{e} not found")
-    return HTTPException(409,"slot already taken")
 
-@router.get("/slots",response_model=list[SlotOut])
+def _http(e: Exception) -> HTTPException:
+    if isinstance(e, service.NotFound):
+        return HTTPException(404, f"{e} not found")
+    return HTTPException(409, "slot already taken")
+
+
+@router.get("/slots", response_model=list[SlotOut])
 async def slots(db: Db) -> list[Slot]:
     return await service.list_slots(db)
 
-@router.get("/hours",response_model=list[HoursOut])
-async def hours(db:Db) -> list[OpeningHours]:
+
+@router.get("/hours", response_model=list[HoursOut])
+async def hours(db: Db) -> list[OpeningHours]:
     return await service.get_hours(db)
 
+
 @router.post("/appointments", response_model=AppointmentOut, status_code=201)
-async def book(body:BookRequest, db:Db) -> Appointment:
+async def book(body: BookRequest, db: Db) -> Appointment:
     try:
-        return await service.book(db,body.patient_name,body.phone,body.slot_id,body.idempotency_key)
+        return await service.book(
+            db, body.patient_name, body.phone, body.slot_id, body.idempotency_key
+        )
     except (service.NotFound, service.SlotTaken) as e:
-        raise _http(e) from e 
+        raise _http(e) from e
 
-@router.put("/appointments/{appt_id}",response_model=AppointmentOut)
-async def reschedule(appt_id:int, body:RescheduleRequest, db:Db) -> Appointment:
+
+@router.put("/appointments/{appt_id}", response_model=AppointmentOut)
+async def reschedule(appt_id: int, body: RescheduleRequest, db: Db) -> Appointment:
     try:
-        return await service.reschedule(db,appt_id,body.new_slot_id)
+        return await service.reschedule(db, appt_id, body.new_slot_id)
     except (service.NotFound, service.SlotTaken) as e:
-        raise _http(e) from e 
+        raise _http(e) from e
 
-@router.delete("/appointments/{appt_id}",response_model=AppointmentOut)
-async def cancel(appt_id: int, db:Db) -> Appointment:
+
+@router.delete("/appointments/{appt_id}", response_model=AppointmentOut)
+async def cancel(appt_id: int, db: Db) -> Appointment:
     try:
-        return await service.cancel(db,appt_id)
+        return await service.cancel(db, appt_id)
     except service.NotFound as e:
-        raise _http(e) from e 
+        raise _http(e) from e
 
-@router.post("/parse",response_model=BookingIntent)
-async def parse(body:ParseRequest) -> BookingIntent:
+
+@router.post("/parse", response_model=BookingIntent)
+async def parse(body: ParseRequest) -> BookingIntent:
     try:
         return await llm.parse_intent(body.text)
     except llm.LLMUnavailable as e:
-        raise HTTPException(502,"LLM Unavailable") from e 
-
-
+        raise HTTPException(502, "LLM Unavailable") from e

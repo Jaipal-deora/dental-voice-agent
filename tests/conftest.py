@@ -15,12 +15,15 @@ from dental_agent.main import app
 async def client() -> AsyncIterator[AsyncClient]:
     engine = create_async_engine("sqlite+aiosqlite://", poolclass=StaticPool)
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all) # test only 
-    maker = async_sessionmaker(engine,expire_on_commit=False)
+        await conn.run_sync(Base.metadata.create_all)  # test only
+    maker = async_sessionmaker(engine, expire_on_commit=False)
     async with maker() as s:
         t = datetime(2030, 1, 7, 9)
         s.add_all(
-            Slot(starts_at=t + timedelta(minutes=30 * i), ends_at=t + timedelta(minutes=30 * i + 30))
+            Slot(
+                starts_at=t + timedelta(minutes=30 * i),
+                ends_at=t + timedelta(minutes=30 * i + 30),
+            )
             for i in range(4)
         )
         s.add(OpeningHours(weekday=0, opens=time(9), closes=time(17)))
@@ -31,7 +34,9 @@ async def client() -> AsyncIterator[AsyncClient]:
             yield session
 
     app.dependency_overrides[get_session] = override
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
         yield ac
     app.dependency_overrides.clear()
     await engine.dispose()

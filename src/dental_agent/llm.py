@@ -17,7 +17,7 @@ from pydantic import ValidationError
 from dental_agent.config import settings
 from dental_agent.schemas import BookingIntent
 
-BACKOFF_BASE = 0.3 
+BACKOFF_BASE = 0.3
 
 
 SYSTEM = """You extract requests from callers of a dental clinic.
@@ -56,53 +56,54 @@ Caller: I need to cancel my appointment.
 Caller: What's the weather like?
 {"intent": "unknown", "day": null, "daypart": null, "service": null, "confidence": 0.9}"""
 
+
 def build_system(today: date | None = None) -> str:
     today = today or date.today()
     days = [today + timedelta(days=i) for i in range(8)]
     calendar = "\n".join(
-        d.strftime("%A %Y-%m-%d") + (" (today)" if i == 0 else "") for i, d in enumerate(days)
+        d.strftime("%A %Y-%m-%d") + (" (today)" if i == 0 else "")
+        for i, d in enumerate(days)
     )
     return SYSTEM.replace("__CALENDAR__", calendar)
-
 
 
 _client = AsyncOpenAI(
     api_key=settings.llm_api_key or "unset",
     base_url="https://api.groq.com/openai/v1",
-    timeout=settings.llm_timeout_s, # already specieid in seconds
+    timeout=settings.llm_timeout_s,  # already specieid in seconds
     max_retries=0,
 )
 
+
 class LLMUnavailable(Exception):
-    pass 
+    pass
 
-async def _call_model(text:str) -> str:
 
-    messages: list[ChatCompletionUserMessageParam | ChatCompletionSystemMessageParam] = [
-            {
-                "role":"system",
-                "content":build_system()#.format(today=date.today().isoformat())
-            },
-            {
-                "role":"user",
-                "content":text
-            }
-        ]
+async def _call_model(text: str) -> str:
 
-     # Print complete prompt
+    messages: list[
+        ChatCompletionUserMessageParam | ChatCompletionSystemMessageParam
+    ] = [
+        {
+            "role": "system",
+            "content": build_system(),  # .format(today=date.today().isoformat())
+        },
+        {"role": "user", "content": text},
+    ]
+
+    # Print complete prompt
     # import json
     # print("\n========== GROQ PROMPT ==========")
     # print(json.dumps(messages, indent=2, ensure_ascii=False))
     # print("========== END PROMPT ==========\n")
-
 
     response = await _client.chat.completions.create(
         model=settings.llm_model,
         max_completion_tokens=1500,
         reasoning_effort="low",
         temperature=0,
-        messages= messages,
-        response_format={"type":"json_object"}
+        messages=messages,
+        response_format={"type": "json_object"},
     )
 
     # print("\n========== COMPLETE GROQ RESPONSE ==========")
@@ -116,18 +117,30 @@ async def _call_model(text:str) -> str:
     print("Finish reason:", response.choices[0].finish_reason)
     return response.choices[0].message.content or ""
 
-def _clean(raw:str) -> str:
-    return raw.strip().removeprefix("```json").removeprefix("```").removesuffix("```").strip()
 
-async def parse_intent(text:str) -> BookingIntent:
-    last: Exception | None = None 
+def _clean(raw: str) -> str:
+    return (
+        raw.strip()
+        .removeprefix("```json")
+        .removeprefix("```")
+        .removesuffix("```")
+        .strip()
+    )
+
+
+async def parse_intent(text: str) -> BookingIntent:
+    last: Exception | None = None
     for attempt in range(settings.llm_max_attempts):
         try:
             raw = await asyncio.wait_for(_call_model(text), settings.llm_timeout_s)
             return BookingIntent.model_validate_json(_clean(raw))
-        except (TimeoutError, APIError, APITimeoutError, RateLimitError, ValidationError) as e:
-            last = e 
-            await asyncio.sleep(random.uniform(0,min(2.0,BACKOFF_BASE*2**attempt)))
-    raise LLMUnavailable from last 
-
-
+        except (
+            TimeoutError,
+            APIError,
+            APITimeoutError,
+            RateLimitError,
+            ValidationError,
+        ) as e:
+            last = e
+            await asyncio.sleep(random.uniform(0, min(2.0, BACKOFF_BASE * 2**attempt)))
+    raise LLMUnavailable from last
