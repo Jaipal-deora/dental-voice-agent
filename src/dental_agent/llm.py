@@ -80,8 +80,6 @@ def build_system(today: date | None = None) -> str:
     return SYSTEM.replace("__CALENDAR__", calendar)
 
 
-
-
 class LLMUnavailable(Exception):
     pass
 
@@ -105,11 +103,11 @@ async def _call_model(text: str) -> str:
 
     response = await client.chat.completions.create(
         model=settings.llm_model,
-        messages=cast(Any,messages),
+        messages=cast(Any, messages),
         max_completion_tokens=settings.max_output_tokens,
         temperature=0,
         response_format={"type": "json_object"},
-        **reasoning_args(settings.llm_model)    
+        **reasoning_args(settings.llm_model),
     )
 
     # print("\n========== COMPLETE GROQ RESPONSE ==========")
@@ -125,8 +123,6 @@ async def _call_model(text: str) -> str:
     if choice.finish_reason == "length":
         raise TimeoutError("output limit reached before the model finished")
     return choice.message.content or ""
-
-    
 
 
 def _clean(raw: str) -> str:
