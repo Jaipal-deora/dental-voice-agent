@@ -225,9 +225,7 @@ async def execute(name: str, raw: dict[str, Any], c: Ctx) -> Result:
     with tracer.start_as_current_span(f"tool:{name}") as span:
         span.set_attribute("input.value", json.dumps(raw))
         if tool.needs_confirm:
-            c.conv.pending = PendingAction(
-                name, args.model_dump(), c.conv.user_turns
-            )
+            c.conv.pending = PendingAction(name, args.model_dump(), c.conv.user_turns)
             out: Result = {
                 "status": "needs_confirmation",
                 "action": name,

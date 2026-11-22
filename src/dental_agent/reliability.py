@@ -4,7 +4,7 @@ import re
 from collections.abc import Awaitable, Callable
 
 # T = TypeVar("T")
-BASEOFF_BASE = 0.3
+BACKOFF_BASE = 0.3
 
 
 async def call_with_retries[T](
@@ -20,7 +20,7 @@ async def call_with_retries[T](
         except retry_on:
             if i == attempts - 1:
                 raise
-            await asyncio.sleep(random.uniform(0, min(2.0, BASEOFF_BASE * 2**i)))
+            await asyncio.sleep(random.uniform(0, min(2.0, BACKOFF_BASE * 2**i)))
     raise RuntimeError("unreachable")
 
 
