@@ -1,11 +1,11 @@
 import asyncio
 import random
 from datetime import date, timedelta
+from typing import Any, cast
 
 from openai import (
     APIError,
     APITimeoutError,
-    AsyncOpenAI,
     RateLimitError,
 )
 from openai.types.chat import (
@@ -14,7 +14,20 @@ from openai.types.chat import (
 )
 from pydantic import ValidationError
 
+import dental_agent.groq_client as gc
 from dental_agent.config import settings
+
+print("MODULE:", gc.__file__)
+print("CLIENT:", hasattr(gc, "client"))
+print("REASONING:", hasattr(gc, "reasoning_args"))
+
+# import dental_agent.groq_client as gc
+
+# print("Loaded file:", gc.__file__)
+# print("Has reasoning_args:", hasattr(gc, "reasoning_args"))
+# print("Module contents:", gc.__dict__.keys())
+
+from dental_agent.groq_client import client, reasoning_args
 from dental_agent.schemas import BookingIntent
 
 BACKOFF_BASE = 0.3
@@ -67,12 +80,6 @@ def build_system(today: date | None = None) -> str:
     return SYSTEM.replace("__CALENDAR__", calendar)
 
 
-_client = AsyncOpenAI(
-    api_key=settings.llm_api_key or "unset",
-    base_url="https://api.groq.com/openai/v1",
-    timeout=settings.llm_timeout_s,  # already specieid in seconds
-    max_retries=0,
-)
 
 
 class LLMUnavailable(Exception):
@@ -80,7 +87,6 @@ class LLMUnavailable(Exception):
 
 
 async def _call_model(text: str) -> str:
-
     messages: list[
         ChatCompletionUserMessageParam | ChatCompletionSystemMessageParam
     ] = [
@@ -97,25 +103,30 @@ async def _call_model(text: str) -> str:
     # print(json.dumps(messages, indent=2, ensure_ascii=False))
     # print("========== END PROMPT ==========\n")
 
-    response = await _client.chat.completions.create(
+    response = await client.chat.completions.create(
         model=settings.llm_model,
-        max_completion_tokens=1500,
-        reasoning_effort="low",
+        messages=cast(Any,messages),
+        max_completion_tokens=settings.max_output_tokens,
         temperature=0,
-        messages=messages,
         response_format={"type": "json_object"},
+        **reasoning_args(settings.llm_model)    
     )
 
     # print("\n========== COMPLETE GROQ RESPONSE ==========")
     # print(response.model_dump_json(indent=2))
     # print("============================================")
 
-    message = response.choices[0].message
+    choice = response.choices[0]
 
-    print("Content:", repr(message.content))
-    print("Tool calls:", message.tool_calls)
-    print("Finish reason:", response.choices[0].finish_reason)
-    return response.choices[0].message.content or ""
+    # print("Content:", repr(choice.message.content))
+    # print("Tool calls:", choice.message.tool_calls)
+    # print("Finish reason:", choice.finish_reason)
+
+    if choice.finish_reason == "length":
+        raise TimeoutError("output limit reached before the model finished")
+    return choice.message.content or ""
+
+    
 
 
 def _clean(raw: str) -> str:
