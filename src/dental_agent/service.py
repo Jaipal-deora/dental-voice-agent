@@ -88,3 +88,12 @@ async def cancel(s: AsyncSession, appt_id: int) -> Appointment:
     appt.status = "cancelled"
     await s.commit()
     return appt
+
+async def appointments_for_phone(s: AsyncSession, phone:str) -> list[tuple[Appointment, Slot]]:
+    q = (
+        select(Appointment,Slot)
+        .join(Patient, Patient.id==Appointment.patient_id)
+        .join(Slot, Slot.id == Appointment.slot_id)
+        .where(Patient.phone == phone, Appointment.status == "booked")
+    )
+    return [(r[0],r[1]) for r in (await s.execute(q)).all()]
