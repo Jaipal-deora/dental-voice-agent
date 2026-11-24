@@ -46,3 +46,14 @@ class BookingIntent(BaseModel):
     daypart: Literal["morning", "afternoon", "evening"] | None = None
     service: str | None = None
     confidence: float = Field(ge=0, le=1)
+
+
+class ChatIn(BaseModel):
+    conversation_id: str | None = None
+    text: str = Field(min_length=1, max_length=500)
+
+
+class ChatOut(BaseModel):
+    conversation_id: str
+    reply: str
+    status: str

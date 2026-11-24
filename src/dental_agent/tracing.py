@@ -10,8 +10,10 @@ def setup_tracing() -> None:
         return
     from phoenix.otel import register
 
+    print("setup")
     register(
         project_name="dental-agent",
         endpoint=settings.phoenix_endpoint,
         auto_instrument=True,
+        api_key=settings.phoenix_api_key,
     )

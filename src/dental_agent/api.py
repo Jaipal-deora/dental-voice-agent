@@ -1,15 +1,20 @@
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from dental_agent import llm, service
+from dental_agent import agent, llm, service
+from dental_agent.backends import Backend, build_llm
+from dental_agent.conversation import InMemoryStore
 from dental_agent.db import get_session
 from dental_agent.db_models import Appointment, OpeningHours, Slot
 from dental_agent.schemas import (
     AppointmentOut,
     BookingIntent,
     BookRequest,
+    ChatIn,
+    ChatOut,
     HoursOut,
     ParseRequest,
     RescheduleRequest,
@@ -18,6 +23,12 @@ from dental_agent.schemas import (
 
 router = APIRouter()
 Db = Annotated[AsyncSession, Depends(get_session)]
+store = InMemoryStore()
+_llm = build_llm()
+
+
+def get_llm() -> Backend:
+    return _llm
 
 
 def _http(e: Exception) -> HTTPException:
@@ -68,3 +79,12 @@ async def parse(body: ParseRequest) -> BookingIntent:
         return await llm.parse_intent(body.text)
     except llm.LLMUnavailable as e:
         raise HTTPException(502, "LLM Unavailable") from e
+
+
+@router.post("/chat", response_model=ChatOut)
+async def chat(
+    body: ChatIn, db: Db, llm: Annotated[Backend, Depends(get_llm)]
+) -> ChatOut:
+    conv = store.get(body.conversation_id)
+    reply = await agent.run_turn(conv, body.text, db, llm, date.today())
+    return ChatOut(conversation_id=conv.id, reply=reply, status=conv.status)

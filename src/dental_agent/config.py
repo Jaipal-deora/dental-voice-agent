@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     max_tool_calls: int = 8
     max_conversation_tokens: int = 30_000
     phoenix_endpoint: str = ""
+    phoenix_api_key: str = ""
 
 
 settings = Settings()
