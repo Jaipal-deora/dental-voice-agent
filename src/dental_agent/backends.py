@@ -1,5 +1,6 @@
 import json
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from typing import Any, Protocol, cast
@@ -172,7 +173,12 @@ class FallbackLLM:
         return ModelReply(text, [], [{"type": "text", "text": text}], degraded=True)
 
 
-def build_llm() -> FallbackLLM:
-    return FallbackLLM(
-        [GroqBackend(settings.agent_model), GroqBackend(settings.fallback_model)]
-    )
+# def build_llm() -> FallbackLLM:
+#     return FallbackLLM(
+#         [GroqBackend(settings.agent_model), GroqBackend(settings.fallback_model)]
+#     )
+
+
+def build_llm(wrap: Callable[[Backend], Backend] = lambda b: b) -> FallbackLLM:
+    models = [settings.agent_model, settings.fallback_model]
+    return FallbackLLM([wrap(GroqBackend(m)) for m in models])

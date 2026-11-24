@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     max_conversation_tokens: int = 30_000
     phoenix_endpoint: str = ""
     phoenix_api_key: str = ""
+    # min_call_interval_s: float = 3.0   # pause between model calls (free-tier friendly)
+    # eval_pause_s: float = 5.0          # pause between caller turns in evals
 
 
 settings = Settings()
