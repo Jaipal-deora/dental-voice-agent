@@ -20,8 +20,16 @@ class Settings(BaseSettings):
     max_conversation_tokens: int = 30_000
     phoenix_endpoint: str = ""
     phoenix_api_key: str = ""
-    # min_call_interval_s: float = 3.0   # pause between model calls (free-tier friendly)
-    # eval_pause_s: float = 5.0          # pause between caller turns in evals
+    uplift_api_key: str = ""
+    uplift_voice: str = "v_meklc281"
+    uplift_sst_url: str = "https://api.upliftai.org/v1/transcribe/speech-to-text"
+    uplift_sst_model: str = "scribe"  # scribe-mini
+    uplift_sst_timeout_s: float = 4.0
+    endpointing_delay_s: float = 0.4
+    sst_provider: str = "uplift"  # groq | uplift
+    livekit_url: str = ""
+    livekit_api_key: str = ""
+    livekit_api_secret: str = ""
 
 
 settings = Settings()

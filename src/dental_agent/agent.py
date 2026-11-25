@@ -34,9 +34,18 @@ SYSTEM = (
     "'Tuesday 25 November at 11:00 am'."
 )
 
+VOICE_RULES = (
+    " Write Urdu script only, never Roman Urdu. Speak plainly: no lists or markdown, "
+    "and write numbers and times as words."
+)
+
+# def system_prompt(today: date) -> str:
+#     return SYSTEM.format(today=today.isoformat(), language=settings.agent_language)
+
 
 def system_prompt(today: date) -> str:
-    return SYSTEM.format(today=today.isoformat(), language=settings.agent_language)
+    s = SYSTEM.format(today=today.isoformat(), language=settings.agent_language)
+    return s + VOICE_RULES if settings.agent_language == "Urdu" else s
 
 
 def _close(conv: Conversation, text: str) -> str:

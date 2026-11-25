@@ -24,4 +24,5 @@ venv/
 simulate_chat.sh
 
 
+logs/
 
