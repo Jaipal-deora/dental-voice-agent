@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     judge_model: str = "openai/gpt-oss-120b"
     reasoning_effort: str = "low"
     max_output_tokens: int = 1500
-    agent_language: str = "Urdu"
+    agent_language: str = "Urdu"  # Urdu | English
     agent_timeout_s: float = 20.0
     max_tool_calls: int = 8
     max_conversation_tokens: int = 30_000
@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     uplift_stt_url: str = "https://api.upliftai.org/v1/transcribe/speech-to-text"
     uplift_stt_model: str = "scribe"  # scribe-mini
     uplift_stt_timeout_s: float = 4.0
-    endpointing_delay_s: float = 0.4
+    endpointing_delay_s: float = 0.5
     stt_provider: str = "groq"  # groq | uplift
     livekit_url: str = ""
     livekit_api_key: str = ""
